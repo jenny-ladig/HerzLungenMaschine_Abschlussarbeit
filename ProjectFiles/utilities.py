@@ -30,7 +30,21 @@ class Subject():
         
 
 ### Aufgabe 2: Datenverarbeitung ###
+def ShowMinimum(df):
+    '''
+    Markiert das Minimum in allen Plots
+    https://pandas.pydata.org/docs/reference/api/pandas.Series.idxmin.html#pandas.Series.idxmin
+    '''
 
+    pass
+
+def ShowMaximum(df):
+    '''
+    Markiert das Maximum in allen Plots
+    https://pandas.pydata.org/docs/reference/api/pandas.Series.idxmax.html#pandas.Series.idxmax
+    '''
+
+    pass
 def calculate_CMA(df,n):
     pass
     
