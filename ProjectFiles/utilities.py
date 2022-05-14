@@ -31,8 +31,27 @@ class Subject():
 
 ### Aufgabe 2: Datenverarbeitung ###
 
-def calculate_CMA(df,n):
-    pass
+def calculate_CMA(df,n):  # Cumulative Moving Average mit Sliding Window (n=...), Window size becomes larger
+       
+#step 1: Importing data
+
+  bloodflow = pd.read_csv("data1.csv", index_col='Time', parse_dates=True)
+                                     
+#step 2: Printing dataFrame
+  bloodflow.head()
+
+#step 3: only the column bloodflow
+  bloodflow = bloodflow['Blood Flow (ml/s)'].to_frame()
+
+#step 4: Calculate CMA with expanding method
+
+  bloodflow['CMA'] = bloodflow['Blood Flow (ml/s)'].expanding().mean()
+  bloodflow    #printing dataframe
+
+#step 5: Plotting CMA
+
+   bloodflow[['Bloodflow (ml/s)', 'CMA']].plot(label='RELIANCE', figsize=(16, 8))
+                                  
     
 
 def calculate_SMA(df,n):
