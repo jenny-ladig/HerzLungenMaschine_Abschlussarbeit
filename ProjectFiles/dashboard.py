@@ -130,8 +130,8 @@ def update_figure(value, algorithm_checkmarks):
             MinValues.append((ts.at[MinPos[i], data_names[i]]))
         
         fig0.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[0]], y=[MinValues[0]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
-        fig1.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[1]], y=[MinValues[1]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10))
-        fig2.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[2]], y=[MinValues[2]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10))
+        fig1.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[1]], y=[MinValues[1]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
+        fig2.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[2]], y=[MinValues[2]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         
     if('max' in algorithm_checkmarks):      #Checks for 'max' in algorithm_checkmarks 
         print("max")
