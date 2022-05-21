@@ -145,8 +145,8 @@ def update_figure(value, algorithm_checkmarks):
         fig0.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[0]], y=[MaxValues[0]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         fig1.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[1]], y=[MaxValues[1]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         fig2.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[2]], y=[MaxValues[2]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
-        
-        
+
+  
 
     return fig0, fig1, fig2 
 
@@ -165,8 +165,18 @@ def bloodflow_figure(value, bloodflow_checkmarks):
     bf = list_of_subjects[int(value)-1].subject_data
     fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s)")
 
+    if bloodflow_checkmarks == ["CMA"]:
+        bf = list_of_subjects[int(value)-1].subject_data
+        bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf["Blood Flow (ml/s)"],2)
+        fig3 = px.line(bf, x = "Time (s)", y = "Blood Flow (ml/s) - CMA")
 
-    return fig3
+    if bloodflow_checkmarks == ["SMA"]:
+        bf = list_of_subjects[int(value)-1].subject_data
+        bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf["Blood Flow (ml/s)"], 10)
+        fig3 = px.line(bf, x = "Time (s)", y = "Blood Flow (ml/s) - SMA")
+
+
+        return fig3
 
 if __name__ == '__main__':
     app.run_server(debug=True)

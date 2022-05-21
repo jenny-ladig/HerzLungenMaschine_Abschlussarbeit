@@ -47,28 +47,15 @@ def ShowMaximum(df):
     IndexMax = df.idxmax()
     return IndexMax
 
-def calculate_CMA(df,n):  # Cumulative Moving Average mit Sliding Window (n=...), Window size becomes larger
-       
-#step 1: Importing data
 
-  bloodflow = pd.read_csv("data1.csv", index_col='Time', parse_dates=True)
-                                     
-#step 2: Printing dataFrame
-  bloodflow.head()
+### Calculating CMA & SMA
 
-#step 3: only the column bloodflow
-  bloodflow = bloodflow['Blood Flow (ml/s)'].to_frame()
+def calculate_CMA(df,n): 
+  
+  return df.expanding(n).mean()
 
-#step 4: Calculate CMA with expanding method
-
-  bloodflow['CMA'] = bloodflow['Blood Flow (ml/s)'].expanding().mean()
-  bloodflow    #printing dataframe
-
-#step 5: Plotting CMA
-
-   bloodflow[['Bloodflow (ml/s)', 'CMA']].plot(label='RELIANCE', figsize=(16, 8))
-                                  
-    
+  pass
 
 def calculate_SMA(df,n):
-    pass
+
+  return df.rolling(n).mean()
