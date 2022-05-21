@@ -48,9 +48,13 @@ def ShowMaximum(df):
     return IndexMax
 
 def calculate_CMA(df,n):
+    a = df.expanding(n).mean()
+    return a
     
-    pass
     
 
 def calculate_SMA(df,n):
-    pass
+    #print(df)
+    a = df.rolling(n).mean()
+    #print(a)
+    return a
