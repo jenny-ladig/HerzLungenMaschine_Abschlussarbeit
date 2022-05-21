@@ -8,6 +8,7 @@ from dash import Dash, html, dcc, Output, Input, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+from tenacity import before_log
 import utilities as ut
 import numpy as np
 import os
@@ -49,8 +50,8 @@ fig2= go.Figure()
 fig3= go.Figure()
 
 fig0 = px.line(df, x="Time (s)", y = "SpO2 (%)")
-fig1 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
-fig2 = px.line(df, x="Time (s)", y = "Temp (C)")
+fig1 = px.line(df, x="Time (s)", y = "Temp (C)")
+fig2 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 fig3 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 
 app.layout = html.Div(children=[
@@ -124,9 +125,11 @@ def update_figure(value, algorithm_checkmarks):
         print("min")
         MinPos = ut.ShowMinimum(ts).to_numpy()  #X-Positionen der Minimalen Werte als Numpy Array
         MinPos = np.delete(MinPos, 0)           #Erster Wert ist Minimum von der Zeit, wird nicht benötigt
-        MinValues = []                          #Leeres Array für Minimalwerte Erstellen
-    
-        for i in range(MinPos.size):                      #Minimale Werte in Array übertragen
+        print(MinPos)
+        print(ts)
+        MinValues = []                            #Leeres Array für Minimalwerte Erstellen
+
+        for i in range(3):                      #Minimale Werte in Array übertragen
             MinValues.append((ts.at[MinPos[i], data_names[i]]))
         
         fig0.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[0]], y=[MinValues[0]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
@@ -139,7 +142,8 @@ def update_figure(value, algorithm_checkmarks):
         MaxPos = np.delete(MaxPos,0)
         MaxValues = []
 
-        for i in range(MaxPos.size):                      #Maximale Werte in Array übertragen
+            
+        for i in range(3):                      #Maximale Werte in Array übertragen
             MaxValues.append((ts.at[MaxPos[i], data_names[i]]))
         
         fig0.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[0]], y=[MaxValues[0]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
@@ -163,7 +167,30 @@ def bloodflow_figure(value, bloodflow_checkmarks):
     ## Calculate Moving Average: Aufgabe 2
     print(bloodflow_checkmarks)
     bf = list_of_subjects[int(value)-1].subject_data
+    
     fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s)")
+
+    
+    n = 5  #Slide Window
+    if('SMA' in bloodflow_checkmarks):
+        
+        bf[['SMA']] = bf[['Blood Flow (ml/s)']].rolling(n).mean()
+        fig3 = px.line(bf, x="Time (s)", y = 'SMA')
+
+    if('CMA' in bloodflow_checkmarks):
+      
+        bf[['CMA']] = bf[['Blood Flow (ml/s)']].expanding().mean()
+        fig3 = px.line(bf, x="Time (s)", y = 'CMA')
+
+    if('Show Limits' in bloodflow_checkmarks):                  #Überprüfe, ob 'Show Limits' angekreuzt wurde
+
+        Avg = float(bf[['Blood Flow (ml/s)']].mean())           #Durchschnitt des Blutflusses berechnen
+        UpperLimit = Avg * 1.15                                 #Obere 15% grenze berechnen
+        LowerLimit = Avg * 0.85                                 #untere 15% grenze berechnen
+        # Linien zeichnen
+        fig3.add_trace(go.Scatter(name = "Durchschnitt", x = [0, 481], y = [Avg, Avg], mode = "lines"))
+        fig3.add_trace(go.Scatter(name = "Oberes 15% Interval", x = [0, 481], y = [UpperLimit, UpperLimit], mode = "lines", marker_color='springgreen'))
+        fig3.add_trace(go.Scatter(name = "Unteres 15% Interval", x = [0, 481], y = [LowerLimit, LowerLimit], mode = "lines", marker_color='orange'))
 
 
     return fig3

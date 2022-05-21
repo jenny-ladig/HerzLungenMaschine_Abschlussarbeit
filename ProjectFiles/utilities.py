@@ -48,6 +48,7 @@ def ShowMaximum(df):
     return IndexMax
 
 def calculate_CMA(df,n):
+    
     pass
     
 
