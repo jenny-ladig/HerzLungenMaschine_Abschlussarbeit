@@ -1,6 +1,7 @@
 # Import external packages
 
 from multiprocessing.connection import wait
+from matplotlib.axis import Axis
 import pandas as pd
 from datetime import datetime
 import numpy as np
@@ -16,8 +17,8 @@ class Subject():
         __f = open(file_name)
         self.subject_data = pd.read_csv(__f)
         self.subject_data = self.subject_data.interpolate(method='polynomial', order=2, axis=0)
-        __splited_id = re.findall(r'\d+',file_name)      
-        self.subject_id = ''.join(__splited_id)
+        #__splited_id = re.findall(r'\d+',file_name)    
+        self.subject_id = file_name.split('.csv')[0][-1]
         self.names = self.subject_data.columns.values.tolist()
         self.time = self.subject_data["Time (s)"]        
         self.spO2 = self.subject_data["SpO2 (%)"]
@@ -30,6 +31,21 @@ class Subject():
         
 
 ### Aufgabe 2: Datenverarbeitung ###
+def ShowMinimum(df):
+    '''
+    https://pandas.pydata.org/docs/reference/api/pandas.Series.idxmin.html#pandas.Series.idxmin
+    '''
+    IndexMin = df.idxmin()
+    return IndexMin
+
+
+def ShowMaximum(df):
+    '''
+    Markiert das Maximum in allen Plots
+    https://pandas.pydata.org/docs/reference/api/pandas.Series.idxmax.html#pandas.Series.idxmax
+    '''
+    IndexMax = df.idxmax()
+    return IndexMax
 
 def calculate_CMA(df,n):  # Cumulative Moving Average mit Sliding Window (n=...), Window size becomes larger
        

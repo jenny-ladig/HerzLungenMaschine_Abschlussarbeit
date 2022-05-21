@@ -1,4 +1,7 @@
 from cmath import nan
+from ctypes import sizeof
+from multiprocessing.sharedctypes import Value
+from statistics import mode
 from tempfile import SpooledTemporaryFile
 import dash
 from dash import Dash, html, dcc, Output, Input, dash_table
@@ -17,7 +20,7 @@ list_of_subjects = []
 subj_numbers = []
 number_of_subjects = 0
 
-folder_current = os.path.dirname(__file__) 
+folder_current = os.path.dirname(__file__)
 print(folder_current)
 folder_input_data = os.path.join(folder_current, "input_data")
 for file in os.listdir(folder_input_data):
@@ -33,9 +36,9 @@ df = list_of_subjects[0].subject_data
 
 
 for i in range(number_of_subjects):
-    subj_numbers.append(list_of_subjects[i].subject_id)
+    subj_numbers.append(int(list_of_subjects[i].subject_id))
 
-data_names = ["SpO2 (%)", "Blood Flow (ml/s)","Temp (C)"]
+data_names = ["SpO2 (%)" ,"Temp (C)","Blood Flow (ml/s)"]
 algorithm_names = ['min','max']
 blood_flow_functions = ['CMA','SMA','Show Limits']
 
@@ -107,6 +110,7 @@ app.layout = html.Div(children=[
 def update_figure(value, algorithm_checkmarks):
     print("Current Subject: ",value)
     print("current checked checkmarks are: ", algorithm_checkmarks)
+    
     ts = list_of_subjects[int(value)-1].subject_data
     #SpO2
     fig0 = px.line(ts, x="Time (s)", y = data_names[0])
@@ -114,8 +118,35 @@ def update_figure(value, algorithm_checkmarks):
     fig1 = px.line(ts, x="Time (s)", y = data_names[1])
     # Blood Temperature
     fig2 = px.line(ts, x="Time (s)", y = data_names[2])
-    
+
     ### Aufgabe 2: Min / Max ###
+    if ('min' in algorithm_checkmarks):     #Checks for 'min' in algorithm_checkmarks
+        print("min")
+        MinPos = ut.ShowMinimum(ts).to_numpy()  #X-Positionen der Minimalen Werte als Numpy Array
+        MinPos = np.delete(MinPos, 0)           #Erster Wert ist Minimum von der Zeit, wird nicht benötigt
+        MinValues = []                          #Leeres Array für Minimalwerte Erstellen
+    
+        for i in range(MinPos.size):                      #Minimale Werte in Array übertragen
+            MinValues.append((ts.at[MinPos[i], data_names[i]]))
+        
+        fig0.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[0]], y=[MinValues[0]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
+        fig1.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[1]], y=[MinValues[1]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
+        fig2.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[2]], y=[MinValues[2]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
+        
+    if('max' in algorithm_checkmarks):      #Checks for 'max' in algorithm_checkmarks 
+        print("max")
+        MaxPos = ut.ShowMaximum(ts).to_numpy()
+        MaxPos = np.delete(MaxPos,0)
+        MaxValues = []
+
+        for i in range(MaxPos.size):                      #Maximale Werte in Array übertragen
+            MaxValues.append((ts.at[MaxPos[i], data_names[i]]))
+        
+        fig0.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[0]], y=[MaxValues[0]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
+        fig1.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[1]], y=[MaxValues[1]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
+        fig2.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[2]], y=[MaxValues[2]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
+        
+        
 
     return fig0, fig1, fig2 
 
