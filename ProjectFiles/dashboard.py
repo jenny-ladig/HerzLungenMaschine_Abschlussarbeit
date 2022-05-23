@@ -81,6 +81,7 @@ def UpdateLayout():
         font_color = theme['detail']
     )
 
+UpdateLayout()
 
 
 
@@ -125,7 +126,7 @@ app.layout = html.Div(children=[
         id='dash-graph3',
         figure=fig3
     )
-], style = {'backgroundColor': theme['primary'], "margin": '0px 0px 0px 0px'})
+], style = {'backgroundColor': theme['primary'], 'margin-left':'0'})
 ### Callback Functions ###
 ## Graph Update Callback
 @app.callback(
@@ -165,7 +166,6 @@ def update_figure(value, algorithm_checkmarks):
         fig1.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[1]], y=[MinValues[1]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         fig2.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[2]], y=[MinValues[2]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         
-        
 
     if('max' in algorithm_checkmarks):      #Checks for 'max' in algorithm_checkmarks 
         print("max")
@@ -180,7 +180,22 @@ def update_figure(value, algorithm_checkmarks):
         fig1.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[1]], y=[MaxValues[1]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         fig2.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[2]], y=[MaxValues[2]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         
-    UpdateLayout()
+    fig0.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
+    fig1.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
+    fig2.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
+    fig3.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
     return fig0, fig1, fig2 
 
 
@@ -228,7 +243,10 @@ def bloodflow_figure(value, bloodflow_checkmarks):
             LegendName = "Dauer Kritischer Werte: " + str(CritVal["Blood Flow (ml/s) - SMA"].count()) +'s'
             fig3.add_trace(go.Scatter(name = LegendName, x = CritVal['Time (s)'], y = CritVal["Blood Flow (ml/s) - SMA"], mode = "markers", marker_color='red'))
     
-    UpdateLayout()
+    fig3.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
     return fig3
 
 if __name__ == '__main__':
