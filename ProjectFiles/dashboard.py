@@ -3,6 +3,7 @@ from ctypes import sizeof
 from multiprocessing.sharedctypes import Value
 from statistics import mode
 from tempfile import SpooledTemporaryFile
+from turtle import color
 import dash
 from dash import Dash, html, dcc, Output, Input, dash_table
 import plotly.express as px
@@ -15,6 +16,13 @@ import os
 import re
 
 app = Dash(__name__)
+
+theme = {
+    'dark': True,
+    'detail': '#FFFFFF',
+    'primary': '#292e36',
+    'secondary': '#6E6E6E',
+}
 
 
 list_of_subjects = []
@@ -54,14 +62,36 @@ fig1 = px.line(df, x="Time (s)", y = "Temp (C)")
 fig2 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 fig3 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 
-app.layout = html.Div(children=[
-    html.H1(children='Cardiopulmonary Bypass Dashboard'),
+def UpdateLayout():
+    print("Hier")
+    fig0.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
+    fig1.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
+    fig2.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
+    fig3.update_layout(
+        paper_bgcolor = theme['primary'],
+        font_color = theme['detail']
+    )
 
-    html.Div(children='''
+
+
+
+app.layout = html.Div(children=[
+    html.H1(children='Cardiopulmonary Bypass Dashboard', style = {'textAlign': 'center','color': theme['detail']}),
+
+    html.Div(style = {'textAlign': 'center','color': theme['detail']}, children='''
         Hier könnten Informationen zum Patienten stehen....
     '''),
-
-    dcc.Checklist(
+    
+    dcc.Checklist(style = {'color': theme['detail']},
     id= 'checklist-algo',
     options=algorithm_names,
     inline=False
@@ -73,12 +103,10 @@ app.layout = html.Div(children=[
     ],
         style={"width": "15%"}
     ),
-
     dcc.Graph(
         id='dash-graph0',
         figure=fig0
     ),
-
     dcc.Graph(
         id='dash-graph1',
         figure=fig1
@@ -88,7 +116,7 @@ app.layout = html.Div(children=[
         figure=fig2
     ),
 
-    dcc.Checklist(
+    dcc.Checklist(style = {'color': theme['detail']},
         id= 'checklist-bloodflow',
         options=blood_flow_functions,
         inline=False
@@ -97,7 +125,7 @@ app.layout = html.Div(children=[
         id='dash-graph3',
         figure=fig3
     )
-])
+], style = {'backgroundColor': theme['primary'], "margin": '0px 0px 0px 0px'})
 ### Callback Functions ###
 ## Graph Update Callback
 @app.callback(
@@ -119,6 +147,8 @@ def update_figure(value, algorithm_checkmarks):
     fig1 = px.line(ts, x="Time (s)", y = data_names[1])
     # Blood Temperature
     fig2 = px.line(ts, x="Time (s)", y = data_names[2])
+    UpdateLayout()
+    print("Hier")
 
     ### Aufgabe 2: Min / Max ###
     if ('min' in algorithm_checkmarks):     #Checks for 'min' in algorithm_checkmarks
@@ -130,10 +160,13 @@ def update_figure(value, algorithm_checkmarks):
         for i in range(3):                      #Minimale Werte in Array übertragen
             MinValues.append((ts.at[MinPos[i], data_names[i]]))
 
+        
         fig0.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[0]], y=[MinValues[0]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         fig1.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[1]], y=[MinValues[1]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         fig2.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[2]], y=[MinValues[2]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         
+        
+
     if('max' in algorithm_checkmarks):      #Checks for 'max' in algorithm_checkmarks 
         print("max")
         MaxPos = ut.ShowMaximum(ts).to_numpy()  #X-Positionen der Maximalen Werte als Numpy Array
@@ -147,6 +180,7 @@ def update_figure(value, algorithm_checkmarks):
         fig1.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[1]], y=[MaxValues[1]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         fig2.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[2]], y=[MaxValues[2]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         
+    UpdateLayout()
     return fig0, fig1, fig2 
 
 
@@ -163,22 +197,26 @@ def bloodflow_figure(value, bloodflow_checkmarks):
     print(bloodflow_checkmarks)
     bf = list_of_subjects[int(value)-1].subject_data
     fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s)")
+    UpdateLayout()
 
     if('SMA' in bloodflow_checkmarks):
         bf = list_of_subjects[int(value)-1].subject_data
         bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf["Blood Flow (ml/s)"], 10)
         fig3.add_trace(go.Scatter(name = "SMA - Blood Flow",x = bf["Time (s)"], y = bf["Blood Flow (ml/s) - SMA"], marker_color = 'magenta'))
+        UpdateLayout()
 
     if ('CMA' in bloodflow_checkmarks):
         bf = list_of_subjects[int(value)-1].subject_data
         bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf["Blood Flow (ml/s)"],2)
         fig3 = px.line(bf, x = "Time (s)", y = "Blood Flow (ml/s) - CMA")
+        UpdateLayout()
 
     if ('Show Limits' in bloodflow_checkmarks):                  #Überprüfe, ob 'Show Limits' angekreuzt wurde
         Avg = float(bf[['Blood Flow (ml/s)']].mean())           #Durchschnitt des Blutflusses berechnen
         UpperLimit = Avg * 1.15                                 #Obere 15% grenze berechnen
         LowerLimit = Avg * 0.85                                 #untere 15% grenze berechnen
-        
+        UpdateLayout()
+
         # Linien zeichnen
         fig3.add_trace(go.Scatter(name = "Durchschnitt", x = [0, 481], y = [Avg, Avg], mode = "lines", marker_color = "red"))
         fig3.add_trace(go.Scatter(name = "Oberes 15% Interval", x = [0, 481], y = [UpperLimit, UpperLimit], mode = "lines", marker_color='springgreen'))
@@ -189,7 +227,8 @@ def bloodflow_figure(value, bloodflow_checkmarks):
             #print(CritVal['SMA'])
             LegendName = "Dauer Kritischer Werte: " + str(CritVal["Blood Flow (ml/s) - SMA"].count()) +'s'
             fig3.add_trace(go.Scatter(name = LegendName, x = CritVal['Time (s)'], y = CritVal["Blood Flow (ml/s) - SMA"], mode = "markers", marker_color='red'))
-            
+    
+    UpdateLayout()
     return fig3
 
 if __name__ == '__main__':
