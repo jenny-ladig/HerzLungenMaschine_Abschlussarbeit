@@ -8,6 +8,7 @@ from dash import Dash, html, dcc, Output, Input, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+from tenacity import before_log
 import utilities as ut
 import numpy as np
 import os
@@ -49,8 +50,8 @@ fig2= go.Figure()
 fig3= go.Figure()
 
 fig0 = px.line(df, x="Time (s)", y = "SpO2 (%)")
-fig1 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
-fig2 = px.line(df, x="Time (s)", y = "Temp (C)")
+fig1 = px.line(df, x="Time (s)", y = "Temp (C)")
+fig2 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 fig3 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 
 app.layout = html.Div(children=[
@@ -124,30 +125,28 @@ def update_figure(value, algorithm_checkmarks):
         print("min")
         MinPos = ut.ShowMinimum(ts).to_numpy()  #X-Positionen der Minimalen Werte als Numpy Array
         MinPos = np.delete(MinPos, 0)           #Erster Wert ist Minimum von der Zeit, wird nicht benötigt
-        MinValues = []                          #Leeres Array für Minimalwerte Erstellen
-    
-        for i in range(MinPos.size):                      #Minimale Werte in Array übertragen
+        MinValues = []                            #Leeres Array für Minimalwerte Erstellen
+
+        for i in range(3):                      #Minimale Werte in Array übertragen
             MinValues.append((ts.at[MinPos[i], data_names[i]]))
-        
+
         fig0.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[0]], y=[MinValues[0]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         fig1.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[1]], y=[MinValues[1]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         fig2.add_trace(go.Scatter(name = 'Minimum', x = [MinPos[2]], y=[MinValues[2]], mode = 'markers', marker_symbol = 'triangle-down', marker_size = 10, marker_color='orange'))
         
     if('max' in algorithm_checkmarks):      #Checks for 'max' in algorithm_checkmarks 
         print("max")
-        MaxPos = ut.ShowMaximum(ts).to_numpy()
-        MaxPos = np.delete(MaxPos,0)
+        MaxPos = ut.ShowMaximum(ts).to_numpy()  #X-Positionen der Maximalen Werte als Numpy Array
+        MaxPos = np.delete(MaxPos,0)            #Erster Wert ist Maximum von der Zeit, wird nicht benötigt
         MaxValues = []
 
-        for i in range(MaxPos.size):                      #Maximale Werte in Array übertragen
+        for i in range(3):                      #Maximale Werte in Array übertragen
             MaxValues.append((ts.at[MaxPos[i], data_names[i]]))
         
         fig0.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[0]], y=[MaxValues[0]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         fig1.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[1]], y=[MaxValues[1]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
         fig2.add_trace(go.Scatter(name = 'Maximum', x = [MaxPos[2]], y=[MaxValues[2]], mode = 'markers', marker_symbol = 'triangle-up', marker_size = 10, marker_color='springgreen'))
-
-  
-
+        
     return fig0, fig1, fig2 
 
 
@@ -165,18 +164,33 @@ def bloodflow_figure(value, bloodflow_checkmarks):
     bf = list_of_subjects[int(value)-1].subject_data
     fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s)")
 
-    if bloodflow_checkmarks == ["CMA"]:
+    if('SMA' in bloodflow_checkmarks):
+        bf = list_of_subjects[int(value)-1].subject_data
+        bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf["Blood Flow (ml/s)"], 10)
+        fig3.add_trace(go.Scatter(name = "SMA - Blood Flow",x = bf["Time (s)"], y = bf["Blood Flow (ml/s) - SMA"], marker_color = 'magenta'))
+
+    if ('CMA' in bloodflow_checkmarks):
         bf = list_of_subjects[int(value)-1].subject_data
         bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf["Blood Flow (ml/s)"],2)
         fig3 = px.line(bf, x = "Time (s)", y = "Blood Flow (ml/s) - CMA")
 
-    if bloodflow_checkmarks == ["SMA"]:
-        bf = list_of_subjects[int(value)-1].subject_data
-        bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf["Blood Flow (ml/s)"], 10)
-        fig3 = px.line(bf, x = "Time (s)", y = "Blood Flow (ml/s) - SMA")
-
-
-        return fig3
+    if ('Show Limits' in bloodflow_checkmarks):                  #Überprüfe, ob 'Show Limits' angekreuzt wurde
+        Avg = float(bf[['Blood Flow (ml/s)']].mean())           #Durchschnitt des Blutflusses berechnen
+        UpperLimit = Avg * 1.15                                 #Obere 15% grenze berechnen
+        LowerLimit = Avg * 0.85                                 #untere 15% grenze berechnen
+        
+        # Linien zeichnen
+        fig3.add_trace(go.Scatter(name = "Durchschnitt", x = [0, 481], y = [Avg, Avg], mode = "lines", marker_color = "red"))
+        fig3.add_trace(go.Scatter(name = "Oberes 15% Interval", x = [0, 481], y = [UpperLimit, UpperLimit], mode = "lines", marker_color='springgreen'))
+        fig3.add_trace(go.Scatter(name = "Unteres 15% Interval", x = [0, 481], y = [LowerLimit, LowerLimit], mode = "lines", marker_color='orange'))
+        
+        if('SMA' in bloodflow_checkmarks):                                    #Überprüfe, ob 'SMA' zusätzlich angekreuzt wurde
+            CritVal = bf[(bf["Blood Flow (ml/s) - SMA"] > UpperLimit) | (bf["Blood Flow (ml/s) - SMA"] < LowerLimit)] #Kritische Werte aus SMA filtern
+            #print(CritVal['SMA'])
+            LegendName = "Dauer Kritischer Werte: " + str(CritVal["Blood Flow (ml/s) - SMA"].count()) +'s'
+            fig3.add_trace(go.Scatter(name = LegendName, x = CritVal['Time (s)'], y = CritVal["Blood Flow (ml/s) - SMA"], mode = "markers", marker_color='red'))
+            
+    return fig3
 
 if __name__ == '__main__':
     app.run_server(debug=True)
