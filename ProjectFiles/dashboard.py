@@ -12,6 +12,7 @@ import utilities as ut
 import numpy as np
 import os
 import re
+from matplotlib import colors
 
 app = Dash(__name__)
 
@@ -119,6 +120,8 @@ def update_figure(value, algorithm_checkmarks):
     # Blood Temperature
     fig2 = px.line(ts, x="Time (s)", y = data_names[2])
 
+    
+
     ### Aufgabe 2: Min / Max ###
     if ('min' in algorithm_checkmarks):     #Checks for 'min' in algorithm_checkmarks
         print("min")
@@ -172,11 +175,11 @@ def bloodflow_figure(value, bloodflow_checkmarks):
 
     if bloodflow_checkmarks == ["SMA"]:
         bf = list_of_subjects[int(value)-1].subject_data
-        bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf["Blood Flow (ml/s)"], 10)
+        bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf["Blood Flow (ml/s)"], 15)
         fig3 = px.line(bf, x = "Time (s)", y = "Blood Flow (ml/s) - SMA")
 
 
-        return fig3
+    return fig3
 
 if __name__ == '__main__':
     app.run_server(debug=True)
