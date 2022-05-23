@@ -54,8 +54,12 @@ def calculate_CMA(df,n):
   
   return df.expanding(n).mean()
 
-  pass
 
-def calculate_SMA(df,n):
 
-  return df.rolling(n).mean()
+def calculate_SMA(df,n):                        # Sinnhaftigkeit: grundsätzlich für alle Signale möglich
+                                                     # wird auch im Finanzwesen für Trendprognose genutzt
+    return df.rolling(n).mean()                      # wichtig: bei Signalen mit starkem Rauschen keinen zu großen Indikator wählen
+                                                     # sonst Informationsverlust möglich
+                                                     # ungeeignet: seitwärtstendiernde Graphen -> weisen keinen eindeutigen Auf- bzw Abstieg auf
+                                                # Einfluss Indikator n: desto höhere Zahl für n => desto stärker erfolgt die Glättung
+                                                     # zzgl. Verschiebung des Startpunktes immer weiter nach rechts

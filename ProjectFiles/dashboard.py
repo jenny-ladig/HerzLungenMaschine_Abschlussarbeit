@@ -63,7 +63,7 @@ fig2 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 fig3 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
 
 def UpdateLayout():
-    print("Hier")
+    
     fig0.update_layout(
         paper_bgcolor = theme['primary'],
         font_color = theme['detail']
@@ -89,7 +89,7 @@ app.layout = html.Div(children=[
     html.H1(children='Cardiopulmonary Bypass Dashboard', style = {'textAlign': 'center','color': theme['detail']}),
 
     html.Div(style = {'textAlign': 'center','color': theme['detail']}, children='''
-        Hier könnten Informationen zum Patienten stehen....
+        Für ausgewählten Patienten liegen folgende Daten vor....
     '''),
     
     dcc.Checklist(style = {'color': theme['detail']},
@@ -251,3 +251,7 @@ def bloodflow_figure(value, bloodflow_checkmarks):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
+
+# Kommentare zu 3.4) SMA - Funktion dient als Grundlage für den Blood Flow Alarm
+# also Alarm existiert nur wenn eben SMA-Graph über bestimmten Werten liegt
