@@ -149,7 +149,7 @@ def update_figure(value, algorithm_checkmarks):
     # Blood Temperature
     fig2 = px.line(ts, x="Time (s)", y = data_names[2])
     UpdateLayout()
-    print("Hier")
+    #print("Hier")
 
     ### Aufgabe 2: Min / Max ###
     if ('min' in algorithm_checkmarks):     #Checks for 'min' in algorithm_checkmarks
